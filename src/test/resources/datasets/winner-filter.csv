@@ -1,0 +1,6 @@
+year;title;studios;producers;winner
+2000;Winner One;Studio A;Producer A;yes
+2001;Ignored Nominee;Studio A;Producer A;
+2010;Winner Two;Studio A;Producer A;TRUE
+2002;Winner Three;Studio B;Producer B;yes
+2003;Winner Four;Studio B;Producer B;yes
