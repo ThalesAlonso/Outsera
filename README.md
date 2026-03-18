@@ -12,14 +12,15 @@ API RESTful em Spring Boot para carregar um arquivo CSV com indicados e vencedor
 
 ## Stack utilizada
 
-- Java 21
+- Java 25
 - Spring Boot 3
 - Spring Web
 - Spring Data JPA
 - Spring Validation
 - H2 Database
 - Apache Commons CSV
-- Springdoc OpenAPI / Swagger UI
+- Springdoc OpenAPI
+- Swagger UI estatico
 - JUnit 5
 - Spring Boot Test
 - MockMvc
@@ -69,7 +70,7 @@ API RESTful em Spring Boot para carregar um arquivo CSV com indicados e vencedor
 
 ### Pre-requisito
 
-- Java 21 instalado e disponivel no `PATH`
+- Java 25 instalado e disponivel no `PATH`
 
 ### Subir a aplicacao
 
@@ -167,6 +168,12 @@ E possivel sobrescrever a origem do arquivo:
 
 ```bash
 ./mvnw spring-boot:run -Dspring-boot.run.arguments="--app.csv.localizacao=file:C:/dados/Movielist.csv"
+```
+
+No Windows, tambem funciona passando o caminho absoluto direto:
+
+```powershell
+.\mvnw.cmd spring-boot:run "-Dspring-boot.run.arguments=--app.csv.localizacao=C:/Users/Thales Alonso/Documents/filmes_brasileiros.csv"
 ```
 
 ## Regras de parsing do CSV

@@ -13,6 +13,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.stereotype.Component;
@@ -22,6 +23,8 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.InvalidPathException;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
 
@@ -59,7 +62,7 @@ public class CsvMovieLoader implements ApplicationRunner {
             return;
         }
 
-        Resource recurso = carregadorRecursos.getResource(propriedadesCsv.localizacao());
+        Resource recurso = resolverRecursoCsv(propriedadesCsv.localizacao());
         if (!recurso.exists()) {
             throw new CsvLoadingException("Recurso CSV nao encontrado: " + propriedadesCsv.localizacao());
         }
@@ -106,6 +109,28 @@ public class CsvMovieLoader implements ApplicationRunner {
         }
 
         LOGGER.info("Bootstrap do CSV concluido: registrosValidos={}, vencedoresPersistidos={}", registrosValidos, vencedoresPersistidos);
+    }
+
+    private Resource resolverRecursoCsv(String localizacao) {
+        if (localizacao == null || localizacao.isBlank()) {
+            throw new CsvLoadingException("A localizacao do CSV nao foi informada.");
+        }
+
+        String localizacaoLimpa = localizacao.trim();
+        if (localizacaoLimpa.startsWith("classpath:") || localizacaoLimpa.startsWith("file:")) {
+            return carregadorRecursos.getResource(localizacaoLimpa);
+        }
+
+        try {
+            Path caminho = Path.of(localizacaoLimpa);
+            if (caminho.isAbsolute() || java.nio.file.Files.exists(caminho)) {
+                return new FileSystemResource(caminho);
+            }
+        } catch (InvalidPathException excecao) {
+            LOGGER.debug("Localizacao do CSV nao foi interpretada como caminho de arquivo: {}", localizacaoLimpa, excecao);
+        }
+
+        return carregadorRecursos.getResource(localizacaoLimpa);
     }
 
     private void validarCabecalhos(CSVParser parser) {

@@ -3,6 +3,7 @@ package com.outsera.razzies;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.web.servlet.ResultActions;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -13,7 +14,7 @@ class AwardIntervalsEndpointIntegrationTest extends AbstractAwardIntervalsIntegr
 
     @Test
     void shouldReturnExpectedAwardIntervalsForDefaultDataset() throws Exception {
-        buscarIntervalosPremiacao()
+        ResultActions resultActions = buscarIntervalosPremiacao()
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.min.length()").value(1))

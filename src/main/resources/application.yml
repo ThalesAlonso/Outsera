@@ -4,6 +4,9 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password:
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
   h2:
     console:
       enabled: true
@@ -27,9 +30,3 @@ logging:
   level:
     com.outsera.razzies.loader.CsvMovieLoader: INFO
     com.outsera.razzies.service.ProducerAwardIntervalService: INFO
-
-springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-    tags-sorter: alpha
-    operations-sorter: alpha

@@ -18,7 +18,8 @@
     <description>Golden Raspberry Awards API</description>
 
     <properties>
-        <java.version>21</java.version>
+        <java.version>25</java.version>
+        <maven.compiler.release>${java.version}</maven.compiler.release>
         <commons-csv.version>1.13.0</commons-csv.version>
         <springdoc.version>2.8.16</springdoc.version>
     </properties>
@@ -48,7 +49,7 @@
         </dependency>
         <dependency>
             <groupId>org.springdoc</groupId>
-            <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+            <artifactId>springdoc-openapi-starter-webmvc-api</artifactId>
             <version>${springdoc.version}</version>
         </dependency>
 
