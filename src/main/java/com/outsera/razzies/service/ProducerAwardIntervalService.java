@@ -11,6 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
 
@@ -47,14 +48,11 @@ public class ProducerAwardIntervalService {
             return new ProducerAwardIntervalResult(List.of(), List.of());
         }
 
-        int intervaloMinimo = intervalos.stream()
+        IntSummaryStatistics stats = intervalos.stream()
                 .mapToInt(ProducerAwardInterval::intervalo)
-                .min()
-                .orElseThrow();
-        int intervaloMaximo = intervalos.stream()
-                .mapToInt(ProducerAwardInterval::intervalo)
-                .max()
-                .orElseThrow();
+                .summaryStatistics();
+        int intervaloMinimo = stats.getMin();
+        int intervaloMaximo = stats.getMax();
 
         List<ProducerAwardInterval> minimo = intervalos.stream()
                 .filter(intervalo -> intervalo.intervalo() == intervaloMinimo)

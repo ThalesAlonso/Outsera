@@ -11,8 +11,4 @@ public class HomeController {
         return "redirect:/swagger-ui.html";
     }
 
-    @GetMapping("/favicon.ico")
-    public String redirecionarFavicon() {
-        return "redirect:/swagger-ui.html";
-    }
 }
