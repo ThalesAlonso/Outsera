@@ -2,17 +2,15 @@ package com.outsera.razzies;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.TestPropertySource;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@TestPropertySource(properties = "app.csv.localizacao=classpath:datasets/default.csv")
-class AwardIntervalsEndpointIntegrationTest extends AbstractAwardIntervalsIntegrationTest {
+class DefaultCsvAwardIntervalsIntegrationTest extends AbstractAwardIntervalsIntegrationTest {
 
     @Test
-    void shouldReturnExpectedAwardIntervalsForDefaultDataset() throws Exception {
+    void shouldReturnExpectedAwardIntervalsForApplicationDefaultCsv() throws Exception {
         buscarIntervalosPremiacao()
                 .andExpect(status().isOk())
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))

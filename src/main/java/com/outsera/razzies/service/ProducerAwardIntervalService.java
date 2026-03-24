@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.IntSummaryStatistics;
 import java.util.List;
 import java.util.Map;
 
@@ -33,60 +32,106 @@ public class ProducerAwardIntervalService {
     @Transactional(readOnly = true)
     public ProducerAwardIntervalResult buscarIntervalosPremiacao() {
         List<MovieEntity> filmesVencedores = repositorioFilme.findByVencedorTrueOrderByAnoPremiacaoAscTituloAsc();
-        Map<String, List<Integer>> vitoriasPorProdutor = new HashMap<>();
+        Map<String, Integer> ultimaVitoriaPorProdutor = new HashMap<>();
+        IntervalAccumulator acumulador = new IntervalAccumulator();
 
         for (MovieEntity filme : filmesVencedores) {
             for (ProducerEntity produtor : filme.getProdutores()) {
-                vitoriasPorProdutor.computeIfAbsent(produtor.getNome(), chave -> new ArrayList<>())
-                        .add(filme.getAnoPremiacao());
+                processarVitoriaProdutor(
+                        produtor.getNome(),
+                        filme.getAnoPremiacao(),
+                        ultimaVitoriaPorProdutor,
+                        acumulador
+                );
             }
         }
 
-        List<ProducerAwardInterval> intervalos = montarIntervalos(vitoriasPorProdutor);
-        if (intervalos.isEmpty()) {
+        if (!acumulador.possuiIntervalos()) {
             LOGGER.info("Nenhum produtor possui vitorias suficientes para gerar intervalo");
             return new ProducerAwardIntervalResult(List.of(), List.of());
         }
 
-        IntSummaryStatistics stats = intervalos.stream()
-                .mapToInt(ProducerAwardInterval::intervalo)
-                .summaryStatistics();
-        int intervaloMinimo = stats.getMin();
-        int intervaloMaximo = stats.getMax();
-
-        List<ProducerAwardInterval> minimo = intervalos.stream()
-                .filter(intervalo -> intervalo.intervalo() == intervaloMinimo)
-                .sorted(ORDENACAO_INTERVALO)
-                .toList();
-        List<ProducerAwardInterval> maximo = intervalos.stream()
-                .filter(intervalo -> intervalo.intervalo() == intervaloMaximo)
-                .sorted(ORDENACAO_INTERVALO)
-                .toList();
-
-        LOGGER.info("Intervalos de premiacao calculados: intervaloMinimo={}, intervaloMaximo={}", intervaloMinimo, intervaloMaximo);
-        return new ProducerAwardIntervalResult(minimo, maximo);
+        ProducerAwardIntervalResult resultado = acumulador.paraResultado();
+        LOGGER.info(
+                "Intervalos de premiacao calculados: intervaloMinimo={}, intervaloMaximo={}",
+                acumulador.intervaloMinimo,
+                acumulador.intervaloMaximo
+        );
+        return resultado;
     }
 
-    private List<ProducerAwardInterval> montarIntervalos(Map<String, List<Integer>> vitoriasPorProdutor) {
-        List<ProducerAwardInterval> intervalos = new ArrayList<>();
+    private void processarVitoriaProdutor(
+            String nomeProdutor,
+            int anoPremiacao,
+            Map<String, Integer> ultimaVitoriaPorProdutor,
+            IntervalAccumulator acumulador
+    ) {
+        Integer ultimaVitoria = ultimaVitoriaPorProdutor.put(nomeProdutor, anoPremiacao);
+        if (ultimaVitoria == null) {
+            return;
+        }
 
-        for (Map.Entry<String, List<Integer>> entrada : vitoriasPorProdutor.entrySet()) {
-            List<Integer> vitorias = entrada.getValue().stream()
-                    .sorted()
-                    .toList();
+        ProducerAwardInterval intervalo = new ProducerAwardInterval(
+                nomeProdutor,
+                anoPremiacao - ultimaVitoria,
+                ultimaVitoria,
+                anoPremiacao
+        );
+        acumulador.registrar(intervalo);
+    }
 
-            for (int indice = 1; indice < vitorias.size(); indice++) {
-                int vitoriaAnterior = vitorias.get(indice - 1);
-                int vitoriaSeguinte = vitorias.get(indice);
-                intervalos.add(new ProducerAwardInterval(
-                        entrada.getKey(),
-                        vitoriaSeguinte - vitoriaAnterior,
-                        vitoriaAnterior,
-                        vitoriaSeguinte
-                ));
+    private static final class IntervalAccumulator {
+        private int intervaloMinimo = Integer.MAX_VALUE;
+        private int intervaloMaximo = Integer.MIN_VALUE;
+        private final List<ProducerAwardInterval> minimos = new ArrayList<>();
+        private final List<ProducerAwardInterval> maximos = new ArrayList<>();
+
+        private void registrar(ProducerAwardInterval intervalo) {
+            atualizarMinimos(intervalo);
+            atualizarMaximos(intervalo);
+        }
+
+        private void atualizarMinimos(ProducerAwardInterval intervalo) {
+            if (intervalo.intervalo() < intervaloMinimo) {
+                intervaloMinimo = intervalo.intervalo();
+                minimos.clear();
+                minimos.add(intervalo);
+                return;
+            }
+
+            if (intervalo.intervalo() == intervaloMinimo) {
+                minimos.add(intervalo);
             }
         }
 
-        return intervalos;
+        private void atualizarMaximos(ProducerAwardInterval intervalo) {
+            if (intervalo.intervalo() > intervaloMaximo) {
+                intervaloMaximo = intervalo.intervalo();
+                maximos.clear();
+                maximos.add(intervalo);
+                return;
+            }
+
+            if (intervalo.intervalo() == intervaloMaximo) {
+                maximos.add(intervalo);
+            }
+        }
+
+        private boolean possuiIntervalos() {
+            return !minimos.isEmpty();
+        }
+
+        private ProducerAwardIntervalResult paraResultado() {
+            return new ProducerAwardIntervalResult(
+                    ordenar(minimos),
+                    ordenar(maximos)
+            );
+        }
+
+        private List<ProducerAwardInterval> ordenar(List<ProducerAwardInterval> intervalos) {
+            return intervalos.stream()
+                    .sorted(ORDENACAO_INTERVALO)
+                    .toList();
+        }
     }
 }

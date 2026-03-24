@@ -2,15 +2,13 @@ package com.outsera.razzies;
 
 import com.outsera.razzies.entity.MovieEntity;
 import org.junit.jupiter.api.Test;
-import org.springframework.test.context.TestPropertySource;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@TestPropertySource(properties = "app.csv.localizacao=classpath:datasets/default.csv")
-class CsvBootstrapIntegrationTest extends AbstractAwardIntervalsIntegrationTest {
+class DefaultCsvBootstrapIntegrationTest extends AbstractAwardIntervalsIntegrationTest {
 
     @Test
-    void shouldLoadMoviesAndWinnersIntoH2() {
+    void shouldLoadMoviesAndWinnersFromApplicationDefaultCsvIntoH2() {
         assertThat(movieRepository.count()).isEqualTo(206);
         assertThat(movieRepository.countByVencedorTrue()).isEqualTo(42);
         assertThat(producerRepository.count()).isGreaterThan(0);
