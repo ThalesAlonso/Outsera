@@ -188,13 +188,12 @@ No Windows, tambem funciona passando o caminho absoluto direto:
 
 ## Testes de integracao implementados
 
-- carga correta do CSV padrao
+- bootstrap usando o mesmo CSV padrao da aplicacao (`classpath:data/movielist.csv`)
+- validacao do endpoint principal usando o CSV padrao da aplicacao
 - persistencia em H2
 - parsing de multiplos produtores no mesmo campo
-- resposta do endpoint principal
-- contrato JSON da resposta
-- empate em `min`
-- empate em `max`
+- cenarios controlados com datasets dedicados para empate em `min`
+- cenarios controlados com datasets dedicados para empate em `max`
 - validacao de que apenas vencedores entram no calculo
 - cenario sem intervalos validos, retornando listas vazias
 
